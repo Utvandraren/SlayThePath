@@ -1,22 +1,58 @@
+import Window as win
+
+#win.constructWindow()
+import os
+#import matplotlib.pyplot as plt
+import json
+import numpy as np
 import tensorflow as tf
+import pandas as pd
 
-mnist = tf.keras.datasets.mnist
+# Make numpy values easier to read.
+np.set_printoptions(precision=3, suppress=True)
 
-model = tf.keras.Sequential([
-    tf.keras.layers.Dense(3),
-    tf.keras.layers.Dense(20, activation='relu'),
-    tf.keras.layers.Dense(1)
-])
+print("TensorFlow version: {}".format(tf.__version__))
+print("Eager execution: {}".format(tf.executing_eagerly()))
 
-model.compile(optimizer='adam',
-              loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
-              metrics=['accuracy'])
+# column order in CSV file
+column_names = ['ascension_level', 'character_chosen', 'neow_bonus', 'path_taken', 'victory']
 
-model.fit(train_images, train_labels, epochs=10)
+feature_names = column_names[:-1]
+label_name = column_names[-1]
 
-test_loss, test_acc = model.evaluate(test_images,  test_labels, verbose=2)
+print("Features: {}".format(feature_names))
+print("Label: {}".format(label_name))
 
-probability_model = tf.keras.Sequential([model, 
-                                         tf.keras.layers.Softmax()])
+class_names = ['False', 'True']
 
-predictions = probability_model.predict(test_images)
+batch_size = 5
+filepath = os.path.abspath("TrainingDataWithOutput.csv")
+
+train_dataset = tf.data.experimental.make_csv_dataset(
+    filepath,
+    batch_size,
+    column_names=column_names,
+    label_name=label_name,
+    num_epochs=1,)
+
+features, labels = next(iter(train_dataset))
+print(features)
+
+#from tensorflow.keras import models
+#from tensorflow.keras import layers
+#network = models.Sequential()
+#network.add(layers.Dense(512, activation='relu', input_shape=(28 * 28,)))
+#network.add(layers.Dense(10, activation='softmax'))
+
+#network.compile(optimizer='rmsprop', loss='categorical_crossentropy', metrics=['accuracy'])
+
+#train_images = train_images.reshape((60000, 28 * 28))
+#train_images = train_images.astype('float32') / 255
+#test_images = test_images.reshape((10000, 28 * 28))
+#test_images = test_images.astype('float32') / 255
+
+#from tensorflow.keras.utils import to_categorical
+#train_labels = to_categorical(train_labels)
+#test_labels = to_categorical(test_labels)
+
+#network.fit(train_images, train_labels, epochs=5, batch_size=128)
