@@ -11,7 +11,7 @@
     <OutputPath>.</OutputPath>
     <Name>SlayThePath</Name>
     <RootNamespace>SlayThePath</RootNamespace>
-    <InterpreterId>Global|PythonCore|3.7</InterpreterId>
+    <InterpreterId>CondaEnv|CondaEnv|NeuralEnv</InterpreterId>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -28,6 +28,10 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <InterpreterReference Include="CondaEnv|CondaEnv|env" />
+    <InterpreterReference Include="CondaEnv|CondaEnv|NeuralEnv" />
+    <InterpreterReference Include="CondaEnv|CondaEnv|NeuralNetwork" />
+    <InterpreterReference Include="Global|ContinuumAnalytics|Anaconda38-64" />
     <InterpreterReference Include="Global|PythonCore|3.7" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
