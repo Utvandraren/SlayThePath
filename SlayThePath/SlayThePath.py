@@ -12,81 +12,20 @@ from tensorflow.keras import layers
 from tensorflow.keras.layers.experimental import preprocessing
 import pathlib
 
-
 # Make numpy values easier to read.
 np.set_printoptions(precision=3, suppress=True)
-
-#print("TensorFlow version: {}".format(tf.__version__))
-#print("Eager execution: {}".format(tf.executing_eagerly()))
-
-# column order in CSV file
-column_names = ['ascension_level', 'character_chosen', 'neow_bonus', 'path_taken', 'victory']
-feature_names = column_names[:-1]
-label_name = column_names[-1]
-
-
-class_names = ['False', 'True']
-
-batch_size = 571
-#filepath = os.path.abspath("TrainingDataWithOutput.csv")
-
-dataframe = pd.read_csv("TrainingDataWithOutput.csv")
-dataframe.info()
-
-# In the original dataset "4" indicates the pet was not adopted.
-#dataframe['target'] = np.where(dataframe['victory']== 'False', 'True')
-# Drop un-used columns.
-#dataframe = dataframe.drop(columns=['AdoptionSpeed', 'Description'])
-
-train, test = train_test_split(dataframe, test_size=0.2)
-train, val = train_test_split(train, test_size=0.2)
-print(len(train), 'train examples')
-print(len(val), 'validation examples')
-print(len(test), 'test examples')
-
-
-"""
-train_dataset = tf.data.experimental.make_csv_dataset(
-    filepath,
-    batch_size,
-    column_names=column_names,
-    label_name=label_name,
-    num_epochs=1,)
-
-test_dataset = train_dataset
-"""
-#train_dataset = all_dataset.skip(50)
-
-
-#features, labels = next(iter(train_dataset))
-#print(features)
-#for element in train_dataset:
-#  print(element)
 
 # A utility method to create a tf.data dataset from a Pandas Dataframe
 def df_to_dataset(dataframe, shuffle=True, batch_size=32):
   dataframe = dataframe.copy()
-  labels = dataframe.pop('victory')
+
+  labels = dataframe.pop('target')
   ds = tf.data.Dataset.from_tensor_slices((dict(dataframe), labels))
   if shuffle:
     ds = ds.shuffle(buffer_size=len(dataframe))
   ds = ds.batch(batch_size)
   ds = ds.prefetch(batch_size)
   return ds
-
-# convert column "a" to int64 dtype and "b" to complex type
-#dataframe = dataframe.astype({"neow_bonus":  str, "character_chosen":  str, "path_taken": str})
-dataframe = pd.Series(['path_taken', 'character_chosen', 'neow_bonus'], dtype="string")
-
-#dataframe.dtypes()
-
-batch_size = 5
-train_ds = df_to_dataset(train, batch_size=batch_size)
-
-[(train_features, label_batch)] = train_ds.take(1)
-print('Every feature:', list(train_features.keys()))
-print('A batch of ages:', train_features['Age'])
-print('A batch of targets:', label_batch )
 
 def get_normalization_layer(name, dataset):
   # Create a Normalization layer for our feature.
@@ -126,58 +65,36 @@ def get_category_encoding_layer(name, dataset, dtype, max_tokens=None):
   # layer so we can use them, or include them in the functional model later.
   return lambda feature: encoder(index(feature))
 
-"""
-all_inputs = []
-encoded_features = []
+# column order in CSV file
+column_names = ['ascension_level', 'character_chosen', 'neow_bonus', 'path_taken', 'victory']
+#feature_names = column_names[:-1]
+#label_name = column_names[-1]
 
-# Numeric features.
-for header in ['ascension_level']:
-  numeric_col = tf.keras.Input(shape=(1,), name=header)
-  normalization_layer = get_normalization_layer(header, train_dataset)
-  encoded_numeric_col = normalization_layer(numeric_col)
-  all_inputs.append(numeric_col)
-  encoded_features.append(encoded_numeric_col)
+batch_size = 571
 
-# Categorical features encoded as string.
-categorical_cols = ['character_chosen', 'neow_bonus', 'path_taken']
-for header in categorical_cols:
-  categorical_col = tf.keras.Input(shape=(1,), name=header, dtype='string')
-  encoding_layer = get_category_encoding_layer(header, train_dataset, dtype='string')
-  encoded_categorical_col = encoding_layer(categorical_col)
-  all_inputs.append(categorical_col)
-  encoded_features.append(encoded_categorical_col)
+dataframe = pd.read_csv("TrainingDataWithOutput.csv")
+#dataframe.info()
+dataframe.head()
 
 
+# In the original dataset "4" indicates the pet was not adopted.
+dataframe['target'] = np.where(dataframe['victory']== 0 ,'False', 'True')
+# Drop un-used columns.
+#dataframe = dataframe.drop(columns=['AdoptionSpeed', 'Description'])
 
-all_features = tf.keras.layers.concatenate(encoded_features)
-x = tf.keras.layers.Dense(32, activation="relu")(all_features)
-x = tf.keras.layers.Dropout(0.5)(x)
-output = tf.keras.layers.Dense(1)(x)
-model = tf.keras.Model(all_inputs, output)
-model.compile(optimizer='adam',
-              loss=tf.keras.losses.BinaryCrossentropy(from_logits=True),
-              metrics=["accuracy"])
+train, test = train_test_split(dataframe, test_size=0.2)
+train, val = train_test_split(train, test_size=0.2)
+print(len(train), 'train examples')
+print(len(val), 'validation examples')
+print(len(test), 'test examples')
+
+batch_size = 5
+train_ds = df_to_dataset(train, batch_size=batch_size)
+
+[(train_features, label_batch)] = train_ds.take(1)
+print('Every feature:', list(train_features.keys()))
+print('A batch of ascension_level:', train_features['ascension_level'])
+print('A batch of targets:', label_batch )
 
 
-tf.keras.utils.plot_model(model, show_shapes=True, rankdir="LR")
 
-model.fit(train_dataset, epochs=10, validation_data=test_dataset)
-"""
-#from tensorflow.keras import models
-#from tensorflow.keras import layers
-#network = models.Sequential()
-#network.add(layers.Dense(512, activation='relu', input_shape=(28 * 28,)))
-#network.add(layers.Dense(10, activation='softmax'))
-
-#network.compile(optimizer='rmsprop', loss='categorical_crossentropy', metrics=['accuracy'])
-
-#train_images = train_images.reshape((60000, 28 * 28))
-#train_images = train_images.astype('float32') / 255
-#test_images = test_images.reshape((10000, 28 * 28))
-#test_images = test_images.astype('float32') / 255
-
-#from tensorflow.keras.utils import to_categorical
-#train_labels = to_categorical(train_labels)
-#test_labels = to_categorical(test_labels)
-
-#network.fit(train_images, train_labels, epochs=5, batch_size=128)
