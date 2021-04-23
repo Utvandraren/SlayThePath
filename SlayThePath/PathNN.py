@@ -63,8 +63,7 @@ def get_category_encoding_layer(name, dataset, dtype, max_tokens=None):
   # layer so we can use them, or include them in the functional model later.
   return lambda feature: encoder(index(feature))
 
-def predict(input):
- sample = {
+def predict(input = {
     'character' : 0,
     'ascension' : 1,
     'floor' : 1,
@@ -73,17 +72,20 @@ def predict(input):
     'path' : 'M|?|M|M|M|E|R|?|T|R|?|?|E|$|',
     'deck': 'Strike_G|Strike_G|Strike_G|Strike_G|Strike_G|Defend_G|Defend_G|',
     'relics': 'Ring of the Snake|Art of War|StoneCalendar|MawBank|Sundial',
-    }
- #input = sample
+    }):
+ 
+
  reloaded_model = tf.keras.models.load_model('path_classifier')
  input_dict = {name: tf.convert_to_tensor([value]) for name, value in input.items()}
  predictions = reloaded_model.predict(input_dict)
  prob = tf.nn.sigmoid(predictions[0])
-
+ 
  print(
-    "This particular path had a %.1f percent probability "
+"This particular path had a %.1f percent probability "
     "of winning." % (100 * prob))
- print()
+ 
+ print(prob)
+ return prob
 
  #model.predict();
   
@@ -94,6 +96,19 @@ def getInput():
     # set file to data frame
     # return dataframedata
     dataframe = pd.read_csv("testoutput.csv")
+
+def getSuggestedPath(pathList = list()):
+    pathsProbability = list()
+    for path in pathList:
+        pathsProbability.append(predict(path))
+
+    prob = pathsProbability[0]
+    
+    for prob in pathsProbability:
+        if prob > highestProb:
+            highestProb = prob
+    
+    return highestProb
     
 
 def train():
@@ -154,3 +169,5 @@ def train():
 
  model.save('path_classifier')
 
+#------------------
+predict()
