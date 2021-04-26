@@ -6,7 +6,10 @@ def buttonTrain():
     NN.train()
 
 def getNewInput():
-    NN.predict()
+    #Get input
+    #put input into list
+    
+    NN.getSuggestedPath()
 
 def constructWindow():
     root = tk.Tk()
