@@ -1,5 +1,7 @@
 import tkinter as tk
 import PathNN as NN
+import tensorflow as tf
+
 
 
 def buttonTrain():
@@ -10,7 +12,7 @@ def getNewInput():
     #put input into list
     
     Result = NN.getSuggestedPath()
-
+    #Write sugested line to somewhere 
     T.insert(tk.END, Result)
 
 
@@ -18,6 +20,7 @@ def constructWindow():
 
     
 
+    reloaded_model = tf.keras.models.load_model('path_classifier')
 
     root = tk.Tk()
 
@@ -28,14 +31,13 @@ def constructWindow():
     #l = tk.Label(root, text = "Fact of the Day")
     #l.config(font =("Courier", 14))
   
-    Fact = """A man can be arrested in
-    Italy for wearing a skirt in public."""
+    Fact = """Suggested path here"""
 
     def updatetext():       
-         Result = NN.getSuggestedPath()
+         result = NN.getSuggestedPath(reloaded_model)
          T.config(state = tk.NORMAL)
          T.delete('1.0', tk.END)
-         T.insert(tk.END, Result)
+         T.insert(tk.END, result)
 
 
     canvas = tk.Canvas(root, height = 200, width = 300)

@@ -3,3 +3,4 @@ import PathNN as NN
 
 
 win.constructWindow();
+#NN.train()

@@ -1,6 +1,4 @@
-#win.constructWindow()
 import os
-#import matplotlib.pyplot as plt
 import json
 import numpy as np
 import tensorflow as tf
@@ -12,7 +10,7 @@ import pathlib
 import glob
 
 # Make numpy values easier to read.
-np.set_printoptions(precision=3, suppress=True)
+np.set_printoptions(precision=6, suppress=True)
 
 # A utility method to create a tf.data dataset from a Pandas Dataframe
 def df_to_dataset(dataframe, shuffle=True, batch_size=32):
@@ -65,22 +63,16 @@ def get_category_encoding_layer(name, dataset, dtype, max_tokens=None):
   # layer so we can use them, or include them in the functional model later.
   return lambda feature: encoder(index(feature))
 
-def predict(reloaded_model, input = { 'character' : 3,'ascension' : 0, 'floor' : 1, 'hp' : 70, 'gold' : 218, 'path' : 'M|?|M|M|$|E|R|M|T|?|E|M|R|M|R|BOSS|', 'deck': 'Strike_G+1|Strike_G|Strike_G|Strike_G|Strike_G+1|Defend_G|Defend_G|Defend_G|Defend_G|Defend_G|Survivor|Neutralize|All Out Attack+1|After Image|Tactician|Deflect+1|Catalyst|Dagger Spray|Injury|Deadly Poison|Leg Sweep+1|Dash|Adrenaline|Poisoned Stab+1|Footwork|Shame|Dagger Throw+1|All Out Attack+1|Deflect|Flying Knee+1|PiercingWail+1|Terror|Adrenaline|CurseOfTheBell|Bouncing Flask|Riddle With Holes+1|Wraith Form v2+1|Backflip|Backflip|Parasite|Flying Knee+1|Backflip+1|Noxious Fumes+1', 'relics': 'Ring of the Snake|ClockworkSouvenir|MawBank|PreservedInsect|Golden Idol|Strawberry|Fusion Hammer|Molten Egg 2|Toolbox|Kunai|Lantern|Whetstone|Bag of Preparation|Calling Bell|Juzu Bracelet|Frozen Egg 2|TungstenRod|Mummified Hand|Pen Nib|Nunchaku|Bottled Tornado',}):
- 
- #reloaded_model = tf.keras.models.load_model('path_classifier')
+def predict(reloaded_model, input):
  input_dict = {name: tf.convert_to_tensor([value]) for name, value in input.items()}
  predictions = reloaded_model.predict(input_dict)
- #print(input_dict)
- #print(predictions)
 
  prob = tf.nn.sigmoid(predictions[0])
  
  print("This particular path had a %.1f percent probability of winning." % (100 * prob))
- 
+
 # print(prob)
  return prob
-
-  
 
 def getInput():
     # get filepath
@@ -89,12 +81,12 @@ def getInput():
     # return dataframedata
     dataframe = pd.read_csv("testoutput.csv")
 
-def getSuggestedPath():
-    potentialPathsDF = pd.read_csv("random_sampling.csv")
-    potentialPathsDF.pop('victory')
+def getSuggestedPath(reloaded_model):
+    potentialPathsDF = pd.read_csv("input.csv")
+    #potentialPathsDF.pop('victory')
     potentialPaths = potentialPathsDF.to_dict('records')
     pathsProbability = list()
-    reloaded_model = tf.keras.models.load_model('path_classifier')
+    #reloaded_model = tf.keras.models.load_model('path_classifier')
 
     for record in potentialPaths:
         pathsProbability.append(predict(reloaded_model, record))
@@ -120,8 +112,9 @@ def getSuggestedPath():
         currentPathIndex += 1
 
 
-    #print("Recommended path:")
-    return pathResult['path']
+    #print("Recommended path:") + "-" 
+    print("Suggested path:" + pathResult['r1'] + "-"  + pathResult['r2'] + "-"  + pathResult['r3'] + "-"  + pathResult['r4'] + "-" + pathResult['r5'] + "-" + pathResult['r6'] + "-" + pathResult['r7'] + "-" + pathResult['r8'] + "-" + pathResult['r9'] + "-" + pathResult['r10'] + "-" + pathResult['r11'] + "-" + pathResult['r12'] + "-" + pathResult['r13'] + "-" + pathResult['r14'] + "-" + pathResult['r15'] + "-" + pathResult['r16'])
+    return pathResult['r1'] + "-"  + pathResult['r2'] + "-"  + pathResult['r3'] + "-"  + pathResult['r4'] + "-" + pathResult['r5'] + "-" + pathResult['r6'] + "-" + pathResult['r7'] + "-" + pathResult['r8'] + "-" + pathResult['r9'] + "-" + pathResult['r10'] + "-" + pathResult['r11'] + "-" + pathResult['r12'] + "-" + pathResult['r13'] + "-" + pathResult['r14'] + "-" + pathResult['r15'] + "-" + pathResult['r16']
     
 
 def train():
@@ -130,9 +123,8 @@ def train():
 
  #dataframe = pd.read_csv("testoutputVictory.csv")
  #dataframe2 = pd.read_csv("random_sampling2")
- csv_file_list = list()
 
- csv_file_list = ["testoutputVictory.csv", "random_sampling2.csv", "random_sampling_10_14_06.csv", "random_sampling_10_14_08.csv"]
+ #csv_file_list = ["testoutputVictory.csv", "random_sampling2.csv", "random_sampling_10_14_06.csv", "random_sampling_10_14_08.csv"]
  
  #list_of_dataframes = []
  #for filename in csv_file_list:
@@ -150,11 +142,6 @@ def train():
     dataframeList.append(df)
 
  dataframe = pd.concat(dataframeList, axis=0, ignore_index=True)
-
-
-
-
- 
  dataframe.info()
  dataframe.head()
 
@@ -167,8 +154,6 @@ def train():
  batch_size = 256
  train_ds = df_to_dataset(train, batch_size=batch_size)
 
- 
- 
  val_ds = df_to_dataset(val, shuffle=False, batch_size=batch_size)
  [(train_features, label_batch)] = val_ds.take(1)
  print('Every feature:', list(train_features.keys()))
@@ -185,7 +170,7 @@ def train():
  encoded_features = []
 
 # Numeric features.
- for header in ['character', 'ascension', 'hp', 'gold']:
+ for header in ['character', 'ascension', 'hp', 'gold','floor']:
   numeric_col = tf.keras.Input(shape=(1,), name=header)
   normalization_layer = get_normalization_layer(header, train_ds)
   encoded_numeric_col = normalization_layer(numeric_col)
@@ -193,7 +178,7 @@ def train():
   encoded_features.append(encoded_numeric_col)
 
 # Categorical features encoded as string.
- categorical_cols = ['path','deck','relics']
+ categorical_cols = ['deck','relics', 'r1', 'r2', 'r3', 'r4', 'r5', 'r6', 'r7', 'r8', 'r9', 'r10', 'r11', 'r12', 'r13', 'r14', 'r15', 'r16']
  for header in categorical_cols:
   categorical_col = tf.keras.Input(shape=(1,), name=header, dtype='string')
   encoding_layer = get_category_encoding_layer(header, train_ds, dtype='string')
@@ -203,7 +188,7 @@ def train():
 
 
  all_features = tf.keras.layers.concatenate(encoded_features)
- x = tf.keras.layers.Dense(6, activation="relu")(all_features)
+ x = tf.keras.layers.Dense(5, activation="relu")(all_features)
  x = tf.keras.layers.Dropout(0.5)(x)
  output = tf.keras.layers.Dense(1)(x)
  model = tf.keras.Model(all_inputs, output)
@@ -213,7 +198,7 @@ def train():
 
  tf.keras.utils.plot_model(model, show_shapes=True, rankdir="LR")
 
- model.fit(train_ds, epochs=3, validation_data=val_ds)
+ model.fit(train_ds, epochs=1, validation_data=val_ds)
 
  loss, accuracy = model.evaluate(test_ds)
  print("Accuracy", accuracy)
@@ -221,6 +206,4 @@ def train():
  model.save('path_classifier')
 
 #------------------Debug
-#reloaded_model = tf.keras.models.load_model('path_classifier')
-#predict(reloaded_model)
-#getSuggestedPath()
+
