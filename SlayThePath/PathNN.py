@@ -120,10 +120,8 @@ def getSuggestedPath():
         currentPathIndex += 1
 
 
-    print("Recommended path:")
-    #pathResult = potentialPaths[0]
-    print(pathResult['path'])
-    #return highestProb
+    #print("Recommended path:")
+    return pathResult['path']
     
 
 def train():
